@@ -1,72 +1,80 @@
-#include "holberton.h"
-#include <stdarg.h>
+#include "main.h"
+#include <stdarg.h> /* va_list, va_start, va_arg, va_end */
+#include <unistd.h> /* write */
 
 /**
- * _printf - produces output according to a format
- * @format: character string
+ * _printf - prints output according to a format.
+ * @format: character string containing zero or more directives.
  *
- * Return: number of characters printed
+ * Return: the number of characters printed (excluding the null byte used to end output to strings).
  */
 int _printf(const char *format, ...)
 {
-        va_list arg;
-        int i = 0, j = 0, count = 0;
-        print_func_t funcs[] = {
-                {'c', print_char},
-                {'s', print_string},
-                {'%', print_percent},
-                {'d', print_int},
-                {'i', print_int},
-                {'b', print_binary},
-                {'u', print_unsigned},
-                {'o', print_octal},
-                {'x', print_hex},
-                {'X', print_hex_upper},
-                {'p', print_pointer},
-                {'r', print_reverse},
-                {'R', print_rot13},
-                {0, NULL}
-        };
+	va_list args;
+	int i, len = 0;
+	char *str;
 
-        va_start(arg, format);
+	va_start(args, format);
 
-        if (!format || (format[i] == '%' && format[i + 1] == '\0'))
-                return (-1);
+	for (i = 0; format && format[i]; i++)
+	{
+		if (format[i] != '%')
+		{
+			len += write(1, &format[i], 1);
+			continue;
+		}
+		i++;
+		switch (format[i])
+		{
+			case 'c':
+				len += write(1, (char) va_arg(args, int), 1);
+				break;
+			case 's':
+				str = va_arg(args, char *);
+				if (!str)
+					str = "(null)";
+				while (*str)
+					len += write(1, str++, 1);
+				break;
+			case '%':
+				len += write(1, "%", 1);
+				break;
+			case 'd':
+			case 'i':
+				len += print_number(va_arg(args, int));
+				break;
+			default:
+				len += write(1, &format[i - 1], 2);
+				break;
+		}
+	}
 
-        while (format && format[i])
-        {
-                if (format[i] == '%')
-                {
-                        j = 0;
-                        i++;
-                        while (funcs[j].func)
-                        {
-                                if (format[i] == funcs[j].specifier)
-                                {
-                                        count += funcs[j].func(arg);
-                                        break;
-                                }
-                                j++;
-                        }
-                        if (!funcs[j].func && format[i] != '%')
-                        {
-                                _putchar('%');
-                                count++;
-                                if (format[i] != '\0')
-                                {
-                                        _putchar(format[i]);
-                                        count++;
-                                }
-                        }
-                }
-                else
-                {
-                        _putchar(format[i]);
-                        count++;
-                }
-                i++;
-        }
+	va_end(args);
 
-        va_end(arg);
-        return (count);
+	return (len);
+}
+
+/**
+ * print_number - prints an integer.
+ * @n: integer to print.
+ *
+ * Return: the number of characters printed.
+ */
+int print_number(int n)
+{
+	unsigned int abs_n = n;
+	int len = 0;
+
+	if (n < 0)
+	{
+		len += write(1, "-", 1);
+		abs_n = -n;
+	}
+
+	if (abs_n / 10)
+		len += print_number(abs_n / 10);
+
+	len += write(1, &"0123456789"[abs_n % 10], 1);
+
+	return (len);
 }
