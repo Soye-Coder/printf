@@ -1,58 +1,57 @@
 #include "main.h"
-#include <stdarg.h>
 
 /**
- * _printf - produces output according to a format.
- * @format: character string
+ * _printf - Prints a formatted string
+ * @format: the format string
+ * @...: the optional arguments
  *
- * Return: the number of characters printed (excluding the null byte used to end output to strings)
+ * Return: the number of characters printed
  */
 int _printf(const char *format, ...)
 {
-    va_list args;
-    int i, len = 0;
-    char *str;
+  int i, count = 0;
+  va_list args;
+  print_handler handlers[] = {
+      {'c', print_char},
+      {'s', print_string},
+      {'%', print_percent},
+      {'d', print_integer},
+      {'i', print_integer},
+      {0, NULL}};
 
-    if (format == NULL)
-        return (-1);
+  va_start(args, format);
 
-    va_start(args, format);
-
-    for (i = 0; format[i] != '\0'; i++)
+  for (i = 0; format[i]; i++)
+  {
+    if (format[i] == '%')
     {
-        if (format[i] == '%')
-        {
-            i++;
-            switch (format[i])
-            {
-                case 'c':
-                    len += _putchar(va_arg(args, int));
-                    break;
-                case 's':
-                    str = va_arg(args, char *);
-                    if (str == NULL)
-                        str = "(null)";
-                    len += _puts(str);
-                    break;
-                case '%':
-                    len += _putchar('%');
-                    break;
-                case 'd':
-                case 'i':
-                    len += print_number(va_arg(args, int));
-                    break;
-                default:
-                    len += _putchar('%');
-                    len += _putchar(format[i]);
-            }
-        }
-        else
-        {
-            len += _putchar(format[i]);
-        }
+      i++;
+      while (format[i] == ' ')
+        i++;
+      if (format[i] == '\0')
+        break;
+      if (format[i] == '%')
+      {
+        _putchar('%');
+        count++;
+      }
+      else
+        count += call_handler(handlers, format[i], args);
     }
+    else
+    {
+      _putchar(format[i]);
+      count++;
+    }
+  }
 
-    va_end(args);
+  va_end(args);
 
-    return (len);
+  return (count);
 }
+
+/**
+ * call_handler - Calls the correct print handler function
+ * @handlers: the array of print handler structs
+ * @specifier: the specifier character
+ * @args
