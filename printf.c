@@ -1,57 +1,72 @@
-#include "main.h"
+#include "holberton.h"
+#include <stdarg.h>
 
 /**
- * _printf - Prints a formatted string
- * @format: the format string
- * @...: the optional arguments
+ * _printf - produces output according to a format
+ * @format: character string
  *
- * Return: the number of characters printed
+ * Return: number of characters printed
  */
 int _printf(const char *format, ...)
 {
-  int i, count = 0;
-  va_list args;
-  print_handler handlers[] = {
-      {'c', print_char},
-      {'s', print_string},
-      {'%', print_percent},
-      {'d', print_integer},
-      {'i', print_integer},
-      {0, NULL}};
+        va_list arg;
+        int i = 0, j = 0, count = 0;
+        print_func_t funcs[] = {
+                {'c', print_char},
+                {'s', print_string},
+                {'%', print_percent},
+                {'d', print_int},
+                {'i', print_int},
+                {'b', print_binary},
+                {'u', print_unsigned},
+                {'o', print_octal},
+                {'x', print_hex},
+                {'X', print_hex_upper},
+                {'p', print_pointer},
+                {'r', print_reverse},
+                {'R', print_rot13},
+                {0, NULL}
+        };
 
-  va_start(args, format);
+        va_start(arg, format);
 
-  for (i = 0; format[i]; i++)
-  {
-    if (format[i] == '%')
-    {
-      i++;
-      while (format[i] == ' ')
-        i++;
-      if (format[i] == '\0')
-        break;
-      if (format[i] == '%')
-      {
-        _putchar('%');
-        count++;
-      }
-      else
-        count += call_handler(handlers, format[i], args);
-    }
-    else
-    {
-      _putchar(format[i]);
-      count++;
-    }
-  }
+        if (!format || (format[i] == '%' && format[i + 1] == '\0'))
+                return (-1);
 
-  va_end(args);
+        while (format && format[i])
+        {
+                if (format[i] == '%')
+                {
+                        j = 0;
+                        i++;
+                        while (funcs[j].func)
+                        {
+                                if (format[i] == funcs[j].specifier)
+                                {
+                                        count += funcs[j].func(arg);
+                                        break;
+                                }
+                                j++;
+                        }
+                        if (!funcs[j].func && format[i] != '%')
+                        {
+                                _putchar('%');
+                                count++;
+                                if (format[i] != '\0')
+                                {
+                                        _putchar(format[i]);
+                                        count++;
+                                }
+                        }
+                }
+                else
+                {
+                        _putchar(format[i]);
+                        count++;
+                }
+                i++;
+        }
 
-  return (count);
+        va_end(arg);
+        return (count);
 }
-
-/**
- * call_handler - Calls the correct print handler function
- * @handlers: the array of print handler structs
- * @specifier: the specifier character
- * @args
