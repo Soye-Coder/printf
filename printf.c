@@ -52,3 +52,60 @@ int _printf(const char *format, ...)
 
     return count;
 }
+
+
+/**
+ * _custom_printf - custom printf function that handles integers and strings
+ * @format: character string.
+ *
+ * Return: the number of characters printed (excluding the null byte used
+ * to end output to strings)
+ */
+int _custom_printf(const char *format, ...)
+{
+        va_list ap;
+        int i, len = 0;
+        char *str;
+
+        va_start(ap, format);
+
+        for (i = 0; format[i] != '\0'; i++)
+        {
+                if (format[i] == '%' && format[i + 1] == 'd')
+                {
+                        int num = va_arg(ap, int);
+                        str = itoa(num);
+                        len += write(1, str, _strlen(str));
+                        i++;
+                        free(str);
+                }
+                else if (format[i] == '%' && format[i + 1] == 'i')
+                {
+                        int num = va_arg(ap, int);
+                        str = itoa(num);
+                        len += write(1, str, _strlen(str));
+                        i++;
+                        free(str);
+                }
+                else if (format[i] == '%' && format[i + 1] == 's')
+                {
+                        char *s = va_arg(ap, char *);
+                        len += write(1, s, _strlen(s));
+                        i++;
+                }
+                else if (format[i] == '%' && format[i + 1] == '%')
+                {
+                        len += write(1, "%", 1);
+                        i++;
+                }
+                else
+                {
+                        len += write(1, &format[i], 1);
+                }
+        }
+
+        va_end(ap);
+
+        return (len);
+}
+
