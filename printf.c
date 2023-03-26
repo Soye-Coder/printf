@@ -1,52 +1,48 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-/**
- * _printf - Prints formatted output to stdout
- * @format: Format string
- *
- * Return: The number of characters printed
- */
 int _printf(const char *format, ...)
 {
     va_list args;
-    int i, count = 0;
-
     va_start(args, format);
-
-    for (i = 0; format[i]; i++)
-    {
-        if (format[i] == '%')
-        {
-            i++;
-
-            switch (format[i])
-            {
-                case 'c':
-                    count += putchar(va_arg(args, int));
+    int count = 0;
+    while (*format) {
+        if (*format == '%') {
+            switch (*(format+1)) {
+                case 'c': {
+                    char c = va_arg(args, int);
+                    putchar(c);
+                    count++;
                     break;
-
-                case 's':
-                    count += printf("%s", va_arg(args, char *));
+                }
+                case 's': {
+                    char *str = va_arg(args, char *);
+                    while (*str) {
+                        putchar(*str);
+                        str++;
+                        count++;
+                    }
                     break;
-
-                case '%':
-                    count += putchar('%');
+                }
+                case '%': {
+                    putchar('%');
+                    count++;
                     break;
-
-                default:
-                    count += putchar('%');
-                    count += putchar(format[i]);
+                }
+                default: {
+                    putchar('%');
+                    putchar(*(format+1));
+                    count += 2;
                     break;
+                }
             }
-        }
-        else
-        {
-            count += putchar(format[i]);
+            format += 2;
+        } else {
+            putchar(*format);
+            format++;
+            count++;
         }
     }
-
     va_end(args);
-
     return count;
 }
