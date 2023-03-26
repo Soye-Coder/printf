@@ -1,111 +1,58 @@
 #include "main.h"
 #include <stdarg.h>
-#include <stdio.h>
 
 /**
- * _printf - prints output according to a format
- * @format: format string
+ * _printf - produces output according to a format.
+ * @format: character string
  *
- * Return: number of characters printed
+ * Return: the number of characters printed (excluding the null byte used to end output to strings)
  */
 int _printf(const char *format, ...)
 {
     va_list args;
-    int count = 0;
+    int i, len = 0;
+    char *str;
+
+    if (format == NULL)
+        return (-1);
 
     va_start(args, format);
 
-    while (*format)
+    for (i = 0; format[i] != '\0'; i++)
     {
-        if (*format == '%')
+        if (format[i] == '%')
         {
-            format++;
-            switch (*format)
+            i++;
+            switch (format[i])
             {
                 case 'c':
-                    putchar(va_arg(args, int));
-                    count++;
+                    len += _putchar(va_arg(args, int));
                     break;
                 case 's':
-                    count += printf("%s", va_arg(args, char *));
+                    str = va_arg(args, char *);
+                    if (str == NULL)
+                        str = "(null)";
+                    len += _puts(str);
                     break;
                 case '%':
-                    putchar('%');
-                    count++;
+                    len += _putchar('%');
+                    break;
+                case 'd':
+                case 'i':
+                    len += print_number(va_arg(args, int));
                     break;
                 default:
-                    putchar('%');
-                    putchar(*format);
-                    count += 2;
-                    break;
+                    len += _putchar('%');
+                    len += _putchar(format[i]);
             }
         }
         else
         {
-            putchar(*format);
-            count++;
+            len += _putchar(format[i]);
         }
-        format++;
     }
 
     va_end(args);
 
-    return count;
+    return (len);
 }
-
-
-/**
- * _custom_printf - custom printf function that handles integers and strings
- * @format: character string.
- *
- * Return: the number of characters printed (excluding the null byte used
- * to end output to strings)
- */
-int _custom_printf(const char *format, ...)
-{
-        va_list ap;
-        int i, len = 0;
-        char *str;
-
-        va_start(ap, format);
-
-        for (i = 0; format[i] != '\0'; i++)
-        {
-                if (format[i] == '%' && format[i + 1] == 'd')
-                {
-                        int num = va_arg(ap, int);
-                        str = itoa(num);
-                        len += write(1, str, _strlen(str));
-                        i++;
-                        free(str);
-                }
-                else if (format[i] == '%' && format[i + 1] == 'i')
-                {
-                        int num = va_arg(ap, int);
-                        str = itoa(num);
-                        len += write(1, str, _strlen(str));
-                        i++;
-                        free(str);
-                }
-                else if (format[i] == '%' && format[i + 1] == 's')
-                {
-                        char *s = va_arg(ap, char *);
-                        len += write(1, s, _strlen(s));
-                        i++;
-                }
-                else if (format[i] == '%' && format[i + 1] == '%')
-                {
-                        len += write(1, "%", 1);
-                        i++;
-                }
-                else
-                {
-                        len += write(1, &format[i], 1);
-                }
-        }
-
-        va_end(ap);
-
-        return (len);
-}
-
